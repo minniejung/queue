@@ -1,12 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { SqsService } from '../services/sqs.service';
-import { SQSMessage, ReceivedMessage } from '../../../common/types/sqs';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { SqsService } from "../services/sqs.service";
+import { SQSMessage, ReceivedMessage } from "../../../common/types/sqs";
 import {
   ReceiveMessageCommand,
   DeleteMessageCommand,
   ReceiveMessageCommandInput,
-} from '@aws-sdk/client-sqs';
-import { EthersService } from '../../ethers/ethers.service';
+} from "@aws-sdk/client-sqs";
+import { EthersService } from "../../ethers/ethers.service";
 
 @Injectable()
 export class SqsConsumer {
@@ -22,9 +22,9 @@ export class SqsConsumer {
     const queueUrl = this.sqsService.getQueueUrl();
     const params: ReceiveMessageCommandInput = {
       QueueUrl: queueUrl,
-      AttributeNames: ['All'],
+      AttributeNames: ["All"],
       MaxNumberOfMessages: 10,
-      MessageAttributeNames: ['All'],
+      MessageAttributeNames: ["All"],
       VisibilityTimeout: 90,
       WaitTimeSeconds: 20,
     };
@@ -40,7 +40,7 @@ export class SqsConsumer {
           ReceiptHandle: msg.ReceiptHandle,
         }));
       } else {
-        console.log('No messages to receive');
+        console.log("No messages to receive");
         return [];
       }
     } catch (err) {
@@ -55,8 +55,8 @@ export class SqsConsumer {
 
   async excuteProcess() {
     const executeSyncElements = {
-      messageId: '',
-      messageHandle: '',
+      messageId: "",
+      messageHandle: "",
     };
     const messages = await this.receive();
     let nonce = await this.ethersService.getNonce(
@@ -82,6 +82,8 @@ export class SqsConsumer {
             executeSyncElements.messageHandle,
             executeSyncElements.messageId
           );
+          
+          // DB 저장하기
           continue;
         }
       } catch (err) {
@@ -95,6 +97,8 @@ export class SqsConsumer {
           executeSyncElements.messageHandle,
           executeSyncElements.messageId
         );
+
+        // DB 저장하기
         continue;
       }
     }
@@ -112,7 +116,7 @@ export class SqsConsumer {
     try {
       await sqs.send(command);
     } catch (err) {
-      if (err.code === 'InvalidParameterValueException') {
+      if (err.code === "InvalidParameterValueException") {
         this.logger.error(
           `[sqs - delete] : {
             "input": {
